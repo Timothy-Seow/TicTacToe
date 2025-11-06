@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Tic Tac Toe",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/raylib.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "F:/School/SIT/MSYS2/mingw64/bin/gdb.exe",
+      "preLaunchTask": "build raylib app"
+    }
+  ]
+}
