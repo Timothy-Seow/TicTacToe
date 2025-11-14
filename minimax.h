@@ -8,6 +8,6 @@ typedef struct {
     int col;
 } Move;
 
-Move findBestMove(char board[SIZE][SIZE]);
+Move findBestMove(char board2D[SIZE][SIZE], int difficulty);
 
 #endif
