@@ -84,24 +84,29 @@ static int minimax(char board[SIZE][SIZE], int depth, int isMax) {
 }
 
 Move findBestMove(char board[SIZE][SIZE]) {
+    //clock to time ex time of minimax
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+    
     int bestVal = -1000;
     Move bestMoves[9];
     int bestCount = 0;
 
-    // --- Step 1: If it's the first move and center is empty, take it ---
+    // If it's first move and center is empty, then take it
     int emptyCount = 0;
     for (int i = 0; i < SIZE; i++)
         for (int j = 0; j < SIZE; j++)
             if (board[i][j] == ' ')
                 emptyCount++;
 
-    // If it's the first AI move (board mostly empty) and center is free
+    // If is AI's first move and center is free
     if (emptyCount >= 8 && board[1][1] == ' ') {
         Move center = {1, 1};
         return center;
     }
 
-    // --- Step 2: Otherwise, use minimax and collect all best moves ---
+    // Otherwise, use minimax to getall best moves
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if (board[i][j] == ' ') {
@@ -119,8 +124,14 @@ Move findBestMove(char board[SIZE][SIZE]) {
             }
         }
     }
+
+    // stop timing
+    end = clock();  
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("\nExecution time for normal minimax: %.6f seconds\n", cpu_time_used);
+
     srand(time(NULL)); // ensure randomness
-    int choice = rand() % bestCount;
+    int choice = rand() % bestCount; //get a random best move if more than 1
 
     printf("\nbest move is: %d,%d", bestMoves[choice],bestMoves[choice]);
     return bestMoves[choice];
