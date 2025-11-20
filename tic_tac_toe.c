@@ -6,7 +6,7 @@
 #define CELL_SIZE 200
 #define SCREEN_SIZE (CELL_SIZE * SIZE)
 
-typedef enum { MENU, SINGLEPLAYER_CHOICE, PLAYING, GAMEOVER } GameState;
+typedef enum { MENU, SINGLEPLAYER_CHOICE, DIFFICULTY_SELECT, PLAYING, GAMEOVER } GameState;
 typedef enum { TWO_PLAYER, SINGLE_PLAYER } GameMode;
 
 int checkWin(char board[3][3]) {
@@ -62,6 +62,7 @@ int main(void) {
     char winner = 0;
     // to track who starts, player = 1, ai =
     int playerStarts = 1; 
+    int difficulty = 3;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -113,19 +114,44 @@ int main(void) {
                 if (CheckCollisionPointRec(mouse, btn1)) {
                     playerStarts = 1;
                     currentPlayer = 'X'; // player
-                    state = PLAYING;
+                    state = DIFFICULTY_SELECT;
                 } else if (CheckCollisionPointRec(mouse, btn2)) {
                     playerStarts = 0;
                     currentPlayer = 'O'; // AI
-                    state = PLAYING;
+                    state = DIFFICULTY_SELECT;
                 }
+            }
+        }
+
+        else if (state == DIFFICULTY_SELECT) {
+            DrawText("Select AI Difficulty", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
+
+            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 250, 200, 60 };
+            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 350, 200, 60 };
+            Rectangle btn3 = { SCREEN_SIZE/2 - 100, 450, 200, 60 };
+
+            DrawRectangleRec(btn1, LIGHTGRAY);
+            DrawRectangleRec(btn2, LIGHTGRAY);
+            DrawRectangleRec(btn3, LIGHTGRAY);
+
+            DrawText("Easy", btn1.x + 70, btn1.y + 15, 25, BLACK);
+            DrawText("Medium", btn2.x + 50, btn2.y + 15, 25, BLACK);
+            DrawText("Hard", btn3.x + 70, btn3.y + 15, 25, BLACK);
+
+            Vector2 mouse = GetMousePosition();
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (CheckCollisionPointRec(mouse, btn1)) difficulty = 1;
+                else if (CheckCollisionPointRec(mouse, btn2)) difficulty = 2;
+                else if (CheckCollisionPointRec(mouse, btn3)) difficulty = 3;
+
+                if (difficulty) state = PLAYING;
             }
         }
 
         else if (state == PLAYING){
             //to make the ai start immeadiatly if player wants it to go first
             if (mode == SINGLE_PLAYER && !gameOver && currentPlayer == 'O') {
-                Move best = findBestMove(board);
+                Move best = findBestMove(board, difficulty);
                 board[best.row][best.col] = 'O';
                 winner = checkWin(board);
                 if (winner || isDraw(board))
@@ -148,9 +174,9 @@ int main(void) {
                     else
                         currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
 
-                        //to call minimax | might make it so that system chooses who to go first
+                        //to call minimax after player turn
                         if (mode == SINGLE_PLAYER && currentPlayer == 'O' && !gameOver) {
-                            Move best = findBestMove(board);
+                            Move best = findBestMove(board, difficulty);
                             board[best.row][best.col] = 'O';
                             winner = checkWin(board);
                             if (winner || isDraw(board))
