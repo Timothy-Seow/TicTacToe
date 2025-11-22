@@ -1,13 +1,15 @@
-//#include "raylib.h"
+#include "raylib.h"
 #include "minimax.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define SIZE 3
 #define CELL_SIZE 200
 #define SCREEN_SIZE (CELL_SIZE * SIZE)
 
-typedef enum { MENU, SINGLEPLAYER_CHOICE, DIFFICULTY_SELECT, PLAYING, GAMEOVER } GameState;
-typedef enum { TWO_PLAYER, SINGLE_PLAYER } GameMode;
+typedef enum { MENU, SINGLEPLAYER_CHOICE, STARTER_SELECT, DIFFICULTY_SELECT, PLAYING, GAMEOVER } GameState;
+typedef enum { TWO_PLAYER, SINGLE_PLAYER_MM, SINGLE_PLAYER_NB } GameMode;
 
 int checkWin(char board[3][3]) {
     for (int i = 0; i < 3; i++) {
@@ -89,14 +91,37 @@ int main(void) {
                     mode = TWO_PLAYER;
                     state = PLAYING;
                 } else if (CheckCollisionPointRec(mouse, btn2)) {
-                    mode = SINGLE_PLAYER;
+                    // mode = SINGLE_PLAYER;
                     state = SINGLEPLAYER_CHOICE;
+                }
+            }
+        }
+        else if (state == SINGLEPLAYER_CHOICE){
+            DrawText("Select an AI model to play against", SCREEN_SIZE/2 - 160, 180, 25, GRAY);
+
+            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 280, 200, 60 };
+            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 380, 200, 60 };
+
+            DrawRectangleRec(btn1, LIGHTGRAY);
+            DrawRectangleRec(btn2, LIGHTGRAY);
+
+            DrawText("Minimax", btn1.x + 40, btn1.y + 15, 25, BLACK);
+            DrawText("Naive Bayes", btn2.x + 50, btn2.y + 15, 25, BLACK);
+
+            Vector2 mouse = GetMousePosition();
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (CheckCollisionPointRec(mouse, btn1)) {
+                    state = STARTER_SELECT;
+                    mode = SINGLE_PLAYER_MM;
+                } else if (CheckCollisionPointRec(mouse, btn2)) {
+                    state = STARTER_SELECT;
+                    mode = SINGLE_PLAYER_NB;
                 }
             }
         }
         
         // this else if is for option of who starts first
-        else if (state == SINGLEPLAYER_CHOICE) {
+        else if (state == STARTER_SELECT) {
             DrawText("Single Player Mode", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
             DrawText("Who should start first?", SCREEN_SIZE/2 - 160, 180, 25, GRAY);
 
@@ -124,41 +149,92 @@ int main(void) {
         }
 
         else if (state == DIFFICULTY_SELECT) {
-            DrawText("Select AI Difficulty", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
-
-            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 250, 200, 60 };
-            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 350, 200, 60 };
-            Rectangle btn3 = { SCREEN_SIZE/2 - 100, 450, 200, 60 };
-
-            DrawRectangleRec(btn1, LIGHTGRAY);
-            DrawRectangleRec(btn2, LIGHTGRAY);
-            DrawRectangleRec(btn3, LIGHTGRAY);
-
-            DrawText("Easy", btn1.x + 70, btn1.y + 15, 25, BLACK);
-            DrawText("Medium", btn2.x + 50, btn2.y + 15, 25, BLACK);
-            DrawText("Hard", btn3.x + 70, btn3.y + 15, 25, BLACK);
-
-            Vector2 mouse = GetMousePosition();
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                if (CheckCollisionPointRec(mouse, btn1)) difficulty = 1;
-                else if (CheckCollisionPointRec(mouse, btn2)) difficulty = 2;
-                else if (CheckCollisionPointRec(mouse, btn3)) difficulty = 3;
-
-                if (difficulty) state = PLAYING;
+            if (mode == SINGLE_PLAYER_NB){
+                difficulty = 0;
+                state = PLAYING;
             }
+            else{
+                DrawText("Select AI Difficulty", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
+
+                Rectangle btn1 = { SCREEN_SIZE/2 - 100, 250, 200, 60 };
+                Rectangle btn2 = { SCREEN_SIZE/2 - 100, 350, 200, 60 };
+                Rectangle btn3 = { SCREEN_SIZE/2 - 100, 450, 200, 60 };
+
+                DrawRectangleRec(btn1, LIGHTGRAY);
+                DrawRectangleRec(btn2, LIGHTGRAY);
+                DrawRectangleRec(btn3, LIGHTGRAY);
+
+                DrawText("Easy", btn1.x + 70, btn1.y + 15, 25, BLACK);
+                DrawText("Medium", btn2.x + 50, btn2.y + 15, 25, BLACK);
+                DrawText("Hard", btn3.x + 70, btn3.y + 15, 25, BLACK);
+
+                Vector2 mouse = GetMousePosition();
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    if (CheckCollisionPointRec(mouse, btn1)) difficulty = 1;
+                    else if (CheckCollisionPointRec(mouse, btn2)) difficulty = 2;
+                    else if (CheckCollisionPointRec(mouse, btn3)) difficulty = 3;
+
+                    if (difficulty) state = PLAYING;
+                }
+            }
+            
         }
 
         else if (state == PLAYING){
-            //to make the ai start immeadiatly if player wants it to go first
-            if (mode == SINGLE_PLAYER && !gameOver && currentPlayer == 'O') {
-                Move best = findBestMove(board, difficulty);
-                board[best.row][best.col] = 'O';
-                winner = checkWin(board);
-                if (winner || isDraw(board))
-                    gameOver = 1;
-                else
-                    currentPlayer = 'X';
-            }           
+            if (!gameOver && currentPlayer == 'O'){
+                //to make the ai start immeadiatly if player wants it to go first
+                if (mode == SINGLE_PLAYER_MM){
+                    Move best = findBestMove(board, difficulty);
+                    board[best.row][best.col] = 'O';
+                    winner = checkWin(board);
+                    if (winner || isDraw(board))
+                        gameOver = 1;
+                    else
+                        currentPlayer = 'X';
+                }
+                else if (mode == SINGLE_PLAYER_NB){
+                    char cmd[512];
+                    char buffer[64];
+                    char board_str[64] = "";
+                    char prediction[10] = {0};
+
+                    // Convert board to string
+                    for (int i = 0; i < SIZE; i++) {
+                        for (int j = 0; j < SIZE; j++) {
+                            char temp[2];
+                            temp[0] = (board[i][j] == ' ') ? 'B' : board[i][j];
+                            temp[1] = '\0';
+                            strcat(board_str, temp);
+                            if (j < SIZE - 1) strcat(board_str, ",");
+                        }
+                        if (i < SIZE - 1) strcat(board_str, ";");
+                    }
+
+                    snprintf(cmd, sizeof(cmd),
+                             "python -c \"import mlalgo,sys; print(mlalgo.main('%s'))\"",
+                             board_str);
+
+                    FILE *fp = popen(cmd, "r");
+                    int move = -1;
+                    if (fp) {
+                        if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                            // remove newline
+                            char *nl = strchr(buffer, '\n');
+                            if (nl) *nl = '\0';
+                            move = atoi(buffer);
+                        }
+                        pclose(fp);
+                    }
+
+                    // implement the changing of board based on prediction from python here
+                    board[move / SIZE][move % SIZE] = 'O';
+                    winner = checkWin(board);
+                    if (winner || isDraw(board))
+                        gameOver = 1;
+                    else
+                        currentPlayer = 'X';
+                }
+            }
 
             // Dave old code starts here
             if (!gameOver && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -175,7 +251,7 @@ int main(void) {
                         currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
 
                         //to call minimax after player turn
-                        if (mode == SINGLE_PLAYER && currentPlayer == 'O' && !gameOver) {
+                        if (mode == SINGLE_PLAYER_MM && currentPlayer == 'O' && !gameOver) {
                             Move best = findBestMove(board, difficulty);
                             board[best.row][best.col] = 'O';
                             winner = checkWin(board);
@@ -184,8 +260,8 @@ int main(void) {
                             else
                                 currentPlayer = 'X';
                         }
+                    }
                 }
-            }
 
             BeginDrawing();
             ClearBackground(RAYWHITE);

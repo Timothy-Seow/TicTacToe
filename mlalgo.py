@@ -25,16 +25,24 @@ def load_data(file):
 
     return df, y
 
-df, y = load_data("tic-tac-toe.data")
-
-encoder = OrdinalEncoder() # encoder to transform X -> 2, O -> 1, B -> 0
-X_encoded = encoder.fit_transform(df)
-
-
-model = CategoricalNB()
-model.fit(X_encoded, y)
-
 def predict(board, model, encoder):
+    # ensure board is a flat list of length 9
+    if isinstance(board, list):
+        flat = []
+        for item in board:
+            if isinstance(item, list):
+                flat.extend(item)
+            else:
+                flat.append(item)
+        board = flat
+    # normalize length and values
+    board = [str(x).upper() if x is not None else "B" for x in board]
+    if len(board) < 9:
+        board += ["B"] * (9 - len(board))
+    else:
+        board = board[:9]
+
+    
     move = None
     best = -1
 
@@ -56,6 +64,32 @@ def predict(board, model, encoder):
     
     return move
 
+def decode_board(board_str):
+    rows = [r.strip() for r in board_str.split(";") if r.strip() != ""]
+    board = []
+    for row in rows:
+        cols = [c.strip().upper() for c in row.split(",") if c.strip() != ""]
+        board.extend(cols)
+    # normalize to exactly 9 cells
+    if len(board) < 9:
+        board += ["B"] * (9 - len(board))
+    else:
+        board = board[:9]
+    return board
+
+def main(board_str):
+
+    board = decode_board(board_str)
+    df, y = load_data("tic-tac-toe.data")
+
+    encoder = OrdinalEncoder() # encoder to transform X -> 2, O -> 1, B -> 0
+    X_encoded = encoder.fit_transform(df)
+
+    model = CategoricalNB()
+    model.fit(X_encoded, y)
+    return predict(board, model, encoder)
+
+"""
 # current_board = pd.DataFrame([["X", "O", "B", "B", "X", "B", "O", "B", "B"]])
 current_board = ["X", "O", "B", "B", "X", "B", "O", "B", "B"]
 move = predict(current_board, model, encoder)
@@ -67,3 +101,4 @@ for i in range(9):
         print()
 
 print("\nPredicted best move index:", move, "(row {}, col {})".format(move//3, move%3))
+"""
