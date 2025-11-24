@@ -1,25 +1,32 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "build raylib app",
-      "type": "shell",
-      "command": "gcc",
-      "args": [
-        "tic_tac_toe.c",
-        "-o", "tic_tac_toe.exe",
-        "-I", "F:/School/SIT/MSYS2/include",
-        "-L", "F:/School/SIT/MSYS2/lib",
-        "-lraylib",
-        "-lopengl32",
-        "-lgdi32",
-        "-lwinmm"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$gcc"]
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-game",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "tic_tac_toe.c",
+                "minimax_improved.c",
+                "ui.c",
+                "-o",
+                "game.exe",
+
+                "-I\"C:/msys64/mingw64/include\"",
+                "-L\"C:/msys64/mingw64/lib\"",
+
+                "-lraylib",
+                "-lopengl32",
+                "-lgdi32",
+                "-lwinmm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
 }
