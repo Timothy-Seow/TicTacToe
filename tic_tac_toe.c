@@ -221,7 +221,7 @@ int main(void) {
                             strcat(board_str, temp);
                             if (j < SIZE - 1) strcat(board_str, ",");
                         }
-                        if (i < SIZE - 1) strcat(board_str, ";");
+                        if (i < SIZE - 1) strcat(board_str, ",");
                     }
 
                     snprintf(cmd, sizeof(cmd),
@@ -233,8 +233,8 @@ int main(void) {
                     if (fp) {
                         if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                             // remove newline
-                            char *nl = strchr(buffer, '\n');
-                            if (nl) *nl = '\0';
+                            char *line = strchr(buffer, '\n');
+                            if (line) *line = '\0';
                             move = atoi(buffer);
                         }
                         pclose(fp);
