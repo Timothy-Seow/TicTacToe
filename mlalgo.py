@@ -13,12 +13,10 @@ def load_data(file):
 
             if not line:                    # check and skip if empty line
                 continue
-        
                 
             parts = line.split(",")         # split characters based on comma
             boards.append(parts[:9])        # append to board list the first 9 characters, which is the current board
             results.append(parts[9])        # append to results list the outcome of the board
-
         
     df = pd.DataFrame(boards, columns=[f"cell{i}" for i in range(9)])   # list comprehension to convert to a pandas dataframe for each board
     y = pd.Series(results)                  # convert results list to a pandas array
@@ -42,8 +40,7 @@ def predict(board, model, encoder):
     if len(board) < 9:                      # to make sure the board is of length 9    
         board += ["B"] * (9 - len(board))   # add 'B' to board if less than 9 
     else:
-        board = board[:9]                   # keep only the first 9 elements of the board array
-
+        board = board[:9]                   # keep only the first 9 elements of the board arra
     
     move = None
     best = -1

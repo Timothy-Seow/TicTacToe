@@ -211,7 +211,7 @@ int main(void) {
                     }
 
                     snprintf(cmd, sizeof(cmd),
-                             "python -c \"import mlalgo,sys; print(mlalgo.main('%s'))\"",
+                             "python -c \"import mlalgo,sys; print(mlalgo.main(sys.argv[1]))\" \"%s\"",
                              board_str);
 
                     FILE *fp = popen(cmd, "r");
@@ -236,7 +236,7 @@ int main(void) {
                 }
             }
 
-            // Dave old code starts here
+            // Check if player made a winning move, if not game continues
             if (!gameOver && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 Vector2 mouse = GetMousePosition();
                 int row = mouse.y / CELL_SIZE;
@@ -249,17 +249,6 @@ int main(void) {
                         gameOver = 1;
                     else
                         currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
-
-                        //to call minimax after player turn
-                        if (mode == SINGLE_PLAYER_MM && currentPlayer == 'O' && !gameOver) {
-                            Move best = findBestMove(board, difficulty);
-                            board[best.row][best.col] = 'O';
-                            winner = checkWin(board);
-                            if (winner || isDraw(board))
-                                gameOver = 1;
-                            else
-                                currentPlayer = 'X';
-                        }
                     }
                 }
 
