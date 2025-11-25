@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "ui.h"
 
 #define SIZE 3
 #define CELL_SIZE 200
 #define SCREEN_SIZE (CELL_SIZE * SIZE)
 
-typedef enum { MENU, SINGLEPLAYER_CHOICE, STARTER_SELECT, DIFFICULTY_SELECT, PLAYING, GAMEOVER } GameState;
+typedef enum { MENU, SINGLEPLAYER_CHOICE, STARTER_SELECT, DIFFICULTY_SELECT, PLAYING, GAMEOVER, PAUSE } GameState;
 typedef enum { TWO_PLAYER, SINGLE_PLAYER_MM, SINGLE_PLAYER_NB } GameMode;
 
 int checkWin(char board[3][3]) {
@@ -49,7 +50,9 @@ int isDraw(char board[SIZE][SIZE]) {
 }
 
 int main(void) {
-    InitWindow(SCREEN_SIZE, SCREEN_SIZE + 50, "Tic Tac Toe GUI - raylib");
+    InitWindow(SCREEN_SIZE, SCREEN_SIZE, "Tic Tac Toe GUI - raylib");
+    InitAudioDevice();
+    InitUI();
 
     GameState state = MENU;
     GameMode mode = TWO_PLAYER;
@@ -65,24 +68,36 @@ int main(void) {
     // to track who starts, player = 1, ai =
     int playerStarts = 1; 
     int difficulty = 3;
+    //Load textures 
+    Texture2D gamebackground = LoadTexture("Graphics/background.png");
+    Texture2D gameovertext = LoadTexture("Graphics/gameover.png");
+    // Button definitions
+    int buttonSpacing = 110;
+
+    Rectangle btn1 = { SCREEN_SIZE/2 - 90, 250, 200, 60 };
+    Rectangle btn2 = { SCREEN_SIZE/2 - 90, 250 + buttonSpacing, 200, 60 };
+    Rectangle btn3 = { SCREEN_SIZE/2 - 90, 250 + buttonSpacing * 2, 200, 60 };
+    
+    // Load Music & Sounds 
+    Sound clicksound = LoadSound("Audio/clicknew.mp3");
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        DrawTexture(gamebackground, 0, 0, WHITE);
 
         //state machine for start menu choosing
         if (state == MENU) {
-            DrawText("TIC TAC TOE", SCREEN_SIZE/2 - 120, 100, 40, DARKBLUE);
-            DrawText("Click to choose mode:", SCREEN_SIZE/2 - 150, 200, 30, GRAY);
+            DrawText("TIC TAC TOE", SCREEN_SIZE/2 - 140, 100, 40, BLACK);
+            DrawText("Click to choose mode:", SCREEN_SIZE/2 - 150, 200, 30, GREEN);
 
-            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 300, 200, 60 };
-            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 400, 200, 60 };
+            bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
+            DrawButton(btn1, hover1);
 
-            DrawRectangleRec(btn1, LIGHTGRAY);
-            DrawRectangleRec(btn2, LIGHTGRAY);
+            bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
+            DrawButton(btn2, hover2);
 
-            DrawText("Two Player", btn1.x + 20, btn1.y + 15, 25, BLACK);
-            DrawText("Single Player", btn2.x + 10, btn2.y + 15, 25, BLACK);
+            DrawText("Two Player", btn1.x + 20, btn1.y + 15, 28, BLACK);
+            DrawText("Single Player", btn2.x + 10, btn2.y + 15, 28, BLACK);
 
             Vector2 mouse = GetMousePosition();
 
@@ -96,17 +111,17 @@ int main(void) {
                 }
             }
         }
+
         else if (state == SINGLEPLAYER_CHOICE){
-            DrawText("Select an AI model to play against", SCREEN_SIZE/2 - 160, 180, 25, GRAY);
+            DrawText("Select an AI model to play against", SCREEN_SIZE/2 - 250 , 100, 30, GREEN);
 
-            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 280, 200, 60 };
-            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 380, 200, 60 };
+            bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
+            DrawButton(btn1, hover1);
+            bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
+            DrawButton(btn2, hover2);
 
-            DrawRectangleRec(btn1, LIGHTGRAY);
-            DrawRectangleRec(btn2, LIGHTGRAY);
-
-            DrawText("Minimax", btn1.x + 40, btn1.y + 15, 25, BLACK);
-            DrawText("Naive Bayes", btn2.x + 50, btn2.y + 15, 25, BLACK);
+            DrawText("Minimax", btn1.x + 50, btn1.y + 15, 28, BLACK);
+            DrawText("Naive Bayes", btn2.x + 20 , btn2.y + 15, 28, BLACK);
 
             Vector2 mouse = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -122,17 +137,17 @@ int main(void) {
         
         // this else if is for option of who starts first
         else if (state == STARTER_SELECT) {
-            DrawText("Single Player Mode", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
-            DrawText("Who should start first?", SCREEN_SIZE/2 - 160, 180, 25, GRAY);
+            DrawText("Single Player Mode", SCREEN_SIZE/2 - 150, 100, 30, BLUE);
+            DrawText("Who should start first?", SCREEN_SIZE/2 - 150, 180, 28, GREEN);
 
-            Rectangle btn1 = { SCREEN_SIZE/2 - 100, 280, 200, 60 };
-            Rectangle btn2 = { SCREEN_SIZE/2 - 100, 380, 200, 60 };
+            bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
+            DrawButton(btn1, hover1);
 
-            DrawRectangleRec(btn1, LIGHTGRAY);
-            DrawRectangleRec(btn2, LIGHTGRAY);
+            bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
+            DrawButton(btn2, hover2);
 
-            DrawText("You Start", btn1.x + 40, btn1.y + 15, 25, BLACK);
-            DrawText("AI Starts", btn2.x + 50, btn2.y + 15, 25, BLACK);
+            DrawText("You Start", btn1.x + 25, btn1.y + 15, 28, BLACK);
+            DrawText("AI Starts", btn2.x + 25, btn2.y + 15, 28, BLACK);
 
             Vector2 mouse = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -154,19 +169,18 @@ int main(void) {
                 state = PLAYING;
             }
             else{
-                DrawText("Select AI Difficulty", SCREEN_SIZE/2 - 150, 100, 30, DARKBLUE);
+                DrawText("Select AI Difficulty", SCREEN_SIZE/2 - 150, 100, 30, GREEN);
 
-                Rectangle btn1 = { SCREEN_SIZE/2 - 100, 250, 200, 60 };
-                Rectangle btn2 = { SCREEN_SIZE/2 - 100, 350, 200, 60 };
-                Rectangle btn3 = { SCREEN_SIZE/2 - 100, 450, 200, 60 };
+            bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
+            DrawButton(btn1, hover1);
+            bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
+            DrawButton(btn2, hover2);
+            bool hover3 = CheckCollisionPointRec(GetMousePosition(), btn3);
+            DrawButton(btn3, hover3);
 
-                DrawRectangleRec(btn1, LIGHTGRAY);
-                DrawRectangleRec(btn2, LIGHTGRAY);
-                DrawRectangleRec(btn3, LIGHTGRAY);
-
-                DrawText("Easy", btn1.x + 70, btn1.y + 15, 25, BLACK);
-                DrawText("Medium", btn2.x + 50, btn2.y + 15, 25, BLACK);
-                DrawText("Hard", btn3.x + 70, btn3.y + 15, 25, BLACK);
+                DrawText("Easy", btn1.x + 70, btn1.y + 15, 28, BLACK);
+                DrawText("Medium", btn2.x + 60, btn2.y + 15, 28, BLACK);
+                DrawText("Hard", btn3.x + 70, btn3.y + 15, 28, BLACK);
 
                 Vector2 mouse = GetMousePosition();
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -174,7 +188,7 @@ int main(void) {
                     else if (CheckCollisionPointRec(mouse, btn2)) difficulty = 2;
                     else if (CheckCollisionPointRec(mouse, btn3)) difficulty = 3;
 
-                    if (difficulty) state = PLAYING;
+                    if (difficulty) state = PLAYING;              
                 }
             }
             
@@ -267,19 +281,21 @@ int main(void) {
                     int x = j * CELL_SIZE + CELL_SIZE / 2;
                     int y = i * CELL_SIZE + CELL_SIZE / 2;
                     if (board[i][j] == 'X')
-                        DrawText("X", x - 20, y - 20, 40, RED);
+                        DrawText("X", x - 20, y - 20, 40, WHITE);
                     else if (board[i][j] == 'O')
-                        DrawText("O", x - 20, y - 20, 40, BLUE);
+                        DrawText("O", x - 20, y - 20, 40, BLACK);
                 }
             }
 
             if (gameOver) {
-                if (winner)
-                    DrawText(TextFormat("Player %c Wins!", winner), 10, SCREEN_SIZE + 10, 30, DARKGREEN);
-                else
-                    DrawText("It's a Draw!", 10, SCREEN_SIZE + 10, 30, DARKGRAY);
+                DrawTexture(gameovertext, -80, 0, WHITE);
 
-                DrawText("Press R to restart or M for menu", SCREEN_SIZE - 360, SCREEN_SIZE + 15, 20, BLACK);
+                if (winner)
+                    DrawText(TextFormat("Player %c Wins!", winner), SCREEN_SIZE/2 - 110, 400, 30, GREEN);
+                else
+                    DrawText("It's a Draw!", SCREEN_SIZE/2 - 110, 400, 30, WHITE);
+
+                DrawText("Press R to restart or M for menu", SCREEN_SIZE/2 - 170, 450, 20, BLACK);
 
                 if (IsKeyPressed(KEY_R)) {
                     for (int i = 0; i < SIZE; i++)
@@ -304,9 +320,58 @@ int main(void) {
                     gameOver = 0;
                 }
             } else {
-                DrawText(TextFormat("Player %c's turn", currentPlayer), 10, SCREEN_SIZE + 10, 30, DARKBLUE);
+                DrawText(TextFormat("Player %c's turn", currentPlayer), 10, SCREEN_SIZE + 10, 30, BLUE);
             }
-            
+
+            // Pause functionality
+            if(IsKeyPressed(KEY_P)){
+                state = PAUSE;
+            }
+        }
+        // Pause State 
+        else if (state == PAUSE){
+            // Background dim
+            DrawRectangle(0, 0, SCREEN_SIZE, SCREEN_SIZE, (Color){0,0,0,150});
+
+            Vector2 mouse = GetMousePosition();
+
+            bool hoverContinue = CheckCollisionPointRec(mouse, btn1);
+            bool hoverRestart  = CheckCollisionPointRec(mouse, btn2);
+            bool hoverMenu     = CheckCollisionPointRec(mouse, btn3);
+
+            DrawButton(btn1, hoverContinue);
+            DrawButton(btn2, hoverRestart);
+            DrawButton(btn3, hoverMenu);
+
+            DrawText("Paused",SCREEN_SIZE/2 - MeasureText("Paused", 50)/2, 150, 50,WHITE);
+
+            DrawCenteredTextInButton(btn1, "Continue", 30, BLACK);
+            DrawCenteredTextInButton(btn2, "Restart", 30, BLACK);
+            DrawCenteredTextInButton(btn3, "Menu", 30, BLACK);
+
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                Vector2 m = GetMousePosition();
+
+                if (CheckCollisionPointRec(m, btn1)) {
+                    state = PLAYING;
+                }
+                else if (CheckCollisionPointRec(m, btn2)) {
+                    memset(board, ' ', sizeof(board));
+                    gameOver = 0;
+                    winner = 0;
+                    currentPlayer = 'X';
+
+                    state = PLAYING;
+                }
+                else if (CheckCollisionPointRec(m, btn3)) {
+                    state = MENU;
+                }
+            }
+
+        }
+        // Click sound for button presses
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            PlaySound(clicksound);
         }
 
         EndDrawing(); 
