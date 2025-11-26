@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <windows.h>
+#include <psapi.h>
 #include "minimax.h"
 
 #define SIZE 3
@@ -15,6 +16,28 @@ static char player = 'O'; // AI
 static char opponent = 'X'; // Human
 static int currentDifficulty = 3;
 static int pureEvaluationMode = 0;
+
+// Get memory usage statistics. Does not affect alogrithm at all
+void printMemoryUsage() {
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        SIZE_T memUsed = pmc.WorkingSetSize; // bytes currently in RAM
+        SIZE_T privateBytes = pmc.PrivateUsage; // committed private memory
+        printf("Memory in use: %zu KB\n", memUsed / 1024);
+        printf("Private bytes: %zu KB\n", privateBytes / 1024);
+    } else {
+        printf("Unable to get memory info\n");
+    }
+}
+
+//function for getting executuon time. Does not affect alogrithm at all
+static void printStatistics(LARGE_INTEGER start, LARGE_INTEGER freq, int depth, int recurses) {
+    LARGE_INTEGER end;
+    QueryPerformanceCounter(&end);
+    double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+    printf("Time taken for move: %lf seconds, \nDepth: %d \nRecurses: %d\n", elapsed, depth, recurses);
+    printMemoryUsage();
+}
 
 // Returns 1 if any moves remain. If returns 0, minimax will stop recursion, meaning draw
 static inline int movesLeft(const char *b) {
@@ -68,7 +91,13 @@ static inline int evaluate(const char *b, int difficulty) {
 }
 
 // Minimax with alpha-beta pruning
-static int minimax(char *board, int depth, int isMax, int alpha, int beta, int maxDepth) {
+static int minimax(char *board, int depth, int isMax, int alpha, int beta, int maxDepth, int *ptrRecurse, int *ptrDepthCount) {
+    //increase recursion count
+    (*ptrRecurse)++;
+    // update maximum depth seen so far
+    if (depth > *ptrDepthCount) {
+        *ptrDepthCount = depth;
+    }
     // evaluate current board
     int score = evaluate(board, currentDifficulty);
 
@@ -92,7 +121,7 @@ static int minimax(char *board, int depth, int isMax, int alpha, int beta, int m
 
         // “plays” a move on the board temporarily to find score of that move then keeps going deeper into tree
         CELL(board,i,j) = symbol;
-        int val = minimax(board, depth + 1, !isMax, alpha, beta, maxDepth);
+        int val = minimax(board, depth + 1, !isMax, alpha, beta, maxDepth, ptrRecurse, ptrDepthCount);
         CELL(board,i,j) = ' ';
 
         //Update best score (MAX or MIN)
@@ -110,13 +139,23 @@ static int minimax(char *board, int depth, int isMax, int alpha, int beta, int m
 
 // Find best move based on current board and difficulty
 Move findBestMove(char board2D[SIZE][SIZE], int difficulty) {
-    srand(time(NULL));
+    //printf("\nMemory usage before entering algorithm:\n");
+    //printMemoryUsage();
     currentDifficulty = difficulty;
     pureEvaluationMode = (difficulty == 3);
-    clock_t start = clock();
+    int maxDepth = 9; // default maxDepth=9 (search entire game)
+    int recurses = 0;
+    int depthCount = 0;
 
+    // Start timer
+    LARGE_INTEGER start, end, freq;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&start);
+    
     // Always take center immediately in Hard mode if available for lvl 3
     if (difficulty == 3 && board2D[1][1] == ' ') {
+        printf("\nAI Hard mode played center move\n");
+        printStatistics(start, freq, depthCount, recurses);
         return (Move){1, 1};
     }
 
@@ -133,17 +172,23 @@ Move findBestMove(char board2D[SIZE][SIZE], int difficulty) {
                 emptyCells[emptyCount++] = (Move){r, c};
 
     // Difficulty setup
-    int maxDepth = 9, imperfectChance = 0; // default maxDepth=9 (search entire game)
     if (difficulty == 1) {
         if ((rand() % 100) < 80) { // mostly random
             Move random = emptyCells[rand() % emptyCount]; // 80% chance for random empty cell, otherwise max depth 2.
-            printf("\nEasy mode played random move\n");
+            printf("\nAI Easy mode played random move\n");
+            printStatistics(start, freq, depthCount, recurses);
             return random;
         }
         maxDepth = 2;
     } else if (difficulty == 2) {
+        // 20% chance of random move
+        if ((rand() % 100) < 20) {
+            Move random = emptyCells[rand() % emptyCount];
+            printf("\nAI Medium mode played random move\n");
+            printStatistics(start, freq, depthCount, recurses);
+            return random;
+        }
         maxDepth = 4 + rand() % 2; // maxDepth 4–5 and imperfectChance 20%
-        imperfectChance = 20;
     }
 
     // Evaluate all possible moves
@@ -155,32 +200,22 @@ Move findBestMove(char board2D[SIZE][SIZE], int difficulty) {
             if (CELL(board, i, j) != ' ') continue;
 
             CELL(board, i, j) = player;
-            int moveVal = minimax(board, 0, 0, -INF, INF, maxDepth); // call minimax to evaluate position
+            int moveVal = minimax(board, 0, 0, -INF, INF, maxDepth, &recurses, &depthCount); // call minimax to evaluate position
             CELL(board, i, j) = ' '; // undo move
 
             if (moveVal > bestVal) {
                 bestVal = moveVal;
                 bestCount = 0;
                 bestMoves[bestCount++] = (Move){i, j}; // update list of best moves
-            } else if (moveVal == bestVal) {
+            } else if (moveVal == bestVal) { // Also update if current move is as good as best move
                 bestMoves[bestCount++] = (Move){i, j};
             }
         }
     }
 
-    // using imperfectChance to return a random empty cell instead of the best move (for occasional mistakes)
-    if (difficulty == 2 && (rand() % 100) < imperfectChance) {
-        Move random = emptyCells[rand() % emptyCount];
-        printf("\nmedium mode made imperfect move\n");
-        return random;
-    }
-
     Move bestMove = bestMoves[rand() % bestCount]; // choose randomly among the best moves
 
-    clock_t end = clock();
-    printf("\nAI (Level %d) chose (%d,%d) in %.5f sec\n",
-           difficulty, bestMove.row, bestMove.col,
-           (double)(end - start) / CLOCKS_PER_SEC);
-
+    printf("\nAI (Level %d) chose (%d,%d)\n", difficulty, bestMove.row, bestMove.col);
+    printStatistics(start, freq, depthCount, recurses);
     return bestMove;
 }
