@@ -87,17 +87,18 @@ int main(void) {
 
         //state machine for start menu choosing
         if (state == MENU) {
-            DrawText("TIC TAC TOE", SCREEN_SIZE/2 - 140, 100, 40, BLACK);
+            DrawText("TIC TAC TOE", SCREEN_SIZE/2 - 138, 102, 40, DARKGRAY); //shadow effect 
+            DrawText("TIC TAC TOE", SCREEN_SIZE/2 - 140, 100, 40, BLACK); 
             DrawText("Click to choose mode:", SCREEN_SIZE/2 - 150, 200, 30, GREEN);
 
             bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
             DrawButton(btn1, hover1);
-
             bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
             DrawButton(btn2, hover2);
 
-            DrawText("Two Player", btn1.x + 20, btn1.y + 15, 28, BLACK);
-            DrawText("Single Player", btn2.x + 10, btn2.y + 15, 28, BLACK);
+            DrawCenteredTextInButton(btn1, "Two Player", 28, BLACK);
+            DrawCenteredTextInButton(btn2, "Single Player", 28, BLACK);
+
 
             Vector2 mouse = GetMousePosition();
 
@@ -120,9 +121,8 @@ int main(void) {
             bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
             DrawButton(btn2, hover2);
 
-            DrawText("Minimax", btn1.x + 50, btn1.y + 15, 28, BLACK);
-            DrawText("Naive Bayes", btn2.x + 20 , btn2.y + 15, 28, BLACK);
-
+            DrawCenteredTextInButton(btn1, "Minimax", 28, BLACK);
+            DrawCenteredTextInButton(btn2, "Naive Bayes", 28, BLACK);
             Vector2 mouse = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 if (CheckCollisionPointRec(mouse, btn1)) {
@@ -137,17 +137,18 @@ int main(void) {
         
         // this else if is for option of who starts first
         else if (state == STARTER_SELECT) {
-            DrawText("Single Player Mode", SCREEN_SIZE/2 - 150, 100, 30, BLUE);
+            DrawText("Single Player Mode", SCREEN_SIZE/2 - 148, 102, 30, DARKGRAY); //shadow effect
+            DrawText("Single Player Mode", SCREEN_SIZE/2 - 150, 100, 30, BLACK);
             DrawText("Who should start first?", SCREEN_SIZE/2 - 150, 180, 28, GREEN);
 
             bool hover1 = CheckCollisionPointRec(GetMousePosition(), btn1);
             DrawButton(btn1, hover1);
-
             bool hover2 = CheckCollisionPointRec(GetMousePosition(), btn2);
             DrawButton(btn2, hover2);
 
-            DrawText("You Start", btn1.x + 25, btn1.y + 15, 28, BLACK);
-            DrawText("AI Starts", btn2.x + 25, btn2.y + 15, 28, BLACK);
+            DrawCenteredTextInButton(btn1, "You Start", 28, BLACK);
+            DrawCenteredTextInButton(btn2, "AI Starts", 28, BLACK);
+
 
             Vector2 mouse = GetMousePosition();
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -266,8 +267,6 @@ int main(void) {
                     }
                 }
 
-            BeginDrawing();
-            ClearBackground(RAYWHITE);
 
             // Draw grid
             for (int i = 1; i < SIZE; i++) {
