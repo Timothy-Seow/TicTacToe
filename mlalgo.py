@@ -76,29 +76,28 @@ def evaluate():
     cm = confusion_matrix(y_test, predictions)       # compute the confusion matrix
     cr = classification_report(y_test, predictions)  # generate a classification report
     
-    labels = ["POSITIVE", "NEGATIVE"]
-    plt.figure(figsize=(6,6))
-    plt.imshow(cm, interpolation='nearest')
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    tick_marks = np.arange(len(labels))
-    plt.xticks(tick_marks, labels)
-    plt.yticks(tick_marks, labels)
-    plt.xlabel('Predicted Label')
-    plt.ylabel('True Label')
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
+    labels = ["POSITIVE", "NEGATIVE"]                # define the labels for the confusion matrix
+    plt.figure(figsize=(6,6))                        # set the figure size
+    plt.imshow(cm, interpolation='nearest')          # display the confusion matrix as an image
+    plt.title('Confusion Matrix')                    # set the title
+    plt.colorbar()                                   # add a color bar   
+    tick_marks = np.arange(len(labels))              # set the tick marks
+    plt.xticks(tick_marks, labels)                   # set the x-axis ticks
+    plt.yticks(tick_marks, labels)                   # set the y-axis ticks
+    plt.xlabel('Predicted Label')                    # set the x-axis label
+    plt.ylabel('True Label')                         # set the y-axis label
+    for i in range(cm.shape[0]):                     # include counts in the confusion matrix
+        for j in range(cm.shape[1]):                
             plt.text(j, i, cm[i, j], ha="center", va="center", color="white" if cm[i, j] > cm.max()/2 else "black")
-    plt.tight_layout()
-    plt.show()
+    plt.tight_layout()                               # adjust layout to prevent overlap
+    plt.show()                                       # display the plot
 
     print("Classification Report:")
-    print(cr)
+    print(cr)                                        # print the classification report               
 
-    win_rate(model, encoder)
+    win_rate(model, encoder)                         # evaluate the win rate of the model
 
 def win_rate(model, encoder):
-
 
     results = {"Win":0, "Loss":0, "Draw":0}
 
