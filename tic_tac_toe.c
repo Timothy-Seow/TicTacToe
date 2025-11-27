@@ -363,7 +363,12 @@ int main(void) {
                     state = PLAYING;
                 }
                 else if (CheckCollisionPointRec(m, btn3)) {
+                    memset(board, ' ', sizeof(board));
+                    gameOver = 0;
+                    winner = 0;
+
                     state = MENU;
+
                 }
             }
 
