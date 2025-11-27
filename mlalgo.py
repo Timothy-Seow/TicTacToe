@@ -1,10 +1,9 @@
-import pandas as pd
 from sklearn.naive_bayes import CategoricalNB
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
-import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import random
 
@@ -64,6 +63,7 @@ def decode_board(board_str):
 
 
 def evaluate():
+    import matplotlib.pyplot as plt
     df, y = load_data("tic-tac-toe.data")            # load the data from the given data file
     encoder = OrdinalEncoder(categories=[["B","O","X"]] * 9, dtype=int)         # encoder to force transform B -> 0, O -> 1, X -> 2
     X_encoded = encoder.fit_transform(df)            # convert the dataframe into numbers
