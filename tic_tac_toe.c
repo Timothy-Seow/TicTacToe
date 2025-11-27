@@ -226,17 +226,21 @@ int main(void) {
                     }
 
                     snprintf(cmd, sizeof(cmd),
-                             "python -c \"import mlalgo,sys; print(mlalgo.main(sys.argv[1]))\" \"%s\"",
+                             "python -c \"import mlalgo,sys; pred, cur, peak, tt = mlalgo.main(sys.argv[1]); print(f'{pred} {cur} {peak} {tt}')\" \"%s\"",
                              board_str);
 
                     FILE *fp = popen(cmd, "r");
                     int move = -1;
+                    long memory_current, memory_peak;
+                    double time_taken;
                     if (fp) {
                         if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                             // remove newline
                             char *line = strchr(buffer, '\n');
                             if (line) *line = '\0';
-                            move = atoi(buffer);
+
+                            sscanf(buffer, "%d %ld %ld %lf", &move, &memory_current, &memory_peak, &time_taken); // read move, memory usage and time taken
+                            printf("Current memory usage: %ld bytes; Peak memory usage: %ld bytes; Time taken: %.6lfs\n", memory_current, memory_peak, time_taken);
                         }
                         pclose(fp);
                     }

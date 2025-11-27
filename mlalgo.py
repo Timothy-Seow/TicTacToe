@@ -6,6 +6,9 @@ from sklearn.metrics import classification_report
 import pandas as pd
 import numpy as np
 import random
+import tracemalloc
+import time
+import sys
 
 def load_data(file):
     boards = []
@@ -29,7 +32,8 @@ def load_data(file):
     return df, y
 
 def predict(board, model, encoder):
-    
+    tracemalloc.start()                       # start tracking memory allocations
+    start_time = time.perf_counter()          # start the timer
     move = None
     best = -1
 
@@ -49,7 +53,11 @@ def predict(board, model, encoder):
             best = prob                              # replace the current best probability to the new one
             move = i                                 # replace move to the current move
     
-    return move
+    end_time = time.perf_counter()            # end the timer
+    current_mem, peak_mem = tracemalloc.get_traced_memory()   # get the current and peak memory usage
+    tracemalloc.stop()                      # stop tracking memory allocations
+
+    return move, current_mem, peak_mem, round(end_time-start_time, 6)     # return the best move along with current, peak memory usage and time taken
 
 def decode_board(board_str):
     board = [c.strip().upper() if c.strip() != "" else "B" for c in board_str.split(",")]   # list comprehension to empty spaces and uppercase it after splitting based on ',', then 'B' if empty
@@ -139,6 +147,11 @@ def main(board_str):
 
     model = CategoricalNB()                 
     model.fit(X_encoded, y)                 # train the model using the encoded data and results from the data file
-    return predict(board, model, encoder)   # returns the prediction based on the train model, encoder and the given board
+    return predict(board, model, encoder)   # returns the prediction based on the train model, encoder and the given board, as well as the memory usage
+
+if __name__ == "__main__":
+    move, current_mem, peak_mem, time_taken = main(sys.argv[1])
+    print(f"{move} {current_mem} {peak_mem} {time_taken}")
+
 
 # evaluate() # Uncomment to run evaluation of the model
