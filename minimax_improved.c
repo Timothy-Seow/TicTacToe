@@ -139,8 +139,8 @@ static int minimax(char *board, int depth, int isMax, int alpha, int beta, int m
 
 // Find best move based on current board and difficulty
 Move findBestMove(char board2D[SIZE][SIZE], int difficulty) {
-    //printf("\nMemory usage before entering algorithm:\n");
-    //printMemoryUsage();
+    printf("\nMemory usage before entering algorithm:\n");
+    printMemoryUsage();
     currentDifficulty = difficulty;
     pureEvaluationMode = (difficulty == 3);
     int maxDepth = 9; // default maxDepth=9 (search entire game)
@@ -173,8 +173,8 @@ Move findBestMove(char board2D[SIZE][SIZE], int difficulty) {
 
     // Difficulty setup
     if (difficulty == 1) {
-        if ((rand() % 100) < 80) { // mostly random
-            Move random = emptyCells[rand() % emptyCount]; // 80% chance for random empty cell, otherwise max depth 2.
+        if ((rand() % 100) < 70) { // mostly random
+            Move random = emptyCells[rand() % emptyCount]; // 70% chance for random empty cell, otherwise max depth 2.
             printf("\nAI Easy mode played random move\n");
             printStatistics(start, freq, depthCount, recurses);
             return random;
