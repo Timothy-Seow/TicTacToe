@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include "ui.h"
 
-// --- Internal UI settings (not visible outside ui.c) ---
+// Internal UI settings and colors
 static Color btnColor;
 static Color glowColorBase;
 static Color glowColorHover;
@@ -11,7 +11,7 @@ static float hoverGlow;
 static float roundness;
 static int segments;
 
-// Called once in your main() before the game loop
+
 void InitUI()
 {
     // Neon yellow button
